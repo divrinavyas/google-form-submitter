@@ -7,6 +7,33 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     unzip \
     curl \
+    libglib2.0-0 \
+    libnss3 \
+    libgconf-2-4 \
+    libfontconfig1 \
+    libxcb1 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libappindicator3-1 \
+    libasound2 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libpango-1.0-0 \
+    libxkbcommon0 \
+    libxrandr2 \
+    libxss1 \
+    xdg-utils \
+    fonts-liberation \
+    dbus \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Chrome separately

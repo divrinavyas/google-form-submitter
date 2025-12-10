@@ -51,14 +51,19 @@ class GoogleFormSubmitter:
         if self.headless or os.environ.get('DOCKER_ENV'):
             options.add_argument("--headless=new")
         
-        options.add_argument("--disable-gpu")
+        # Essential for Docker/containerized environments
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-infobars")
-        options.add_argument("--remote-debugging-port=9222")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--single-process")
+        options.add_argument("--ignore-certificate-errors")
+        options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-features=VizDisplayCompositor")
         
         # Add user agent to appear more like a real browser
         options.add_argument(
