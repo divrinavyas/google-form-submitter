@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Form Auto-Submitter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .file-upload {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #e8e8ff;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-text {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            padding: 10px 16px;
+            background: #e8f5e9;
+            border-radius: 6px;
+            color: #2e7d32;
+            font-weight: 500;
+            display: none;
+        }
+
+        .file-name.show {
+            display: block;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            display: none;
+        }
+
+        .progress-section.show {
+            display: block;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box.total {
+            background: #e3f2fd;
+        }
+
+        .stat-box.success {
+            background: #e8f5e9;
+        }
+
+        .stat-box.failed {
+            background: #ffebee;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-box.total .stat-number {
+            color: #1976d2;
+        }
+
+        .stat-box.success .stat-number {
+            color: #2e7d32;
+        }
+
+        .stat-box.failed .stat-number {
+            color: #c62828;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status-message.pending {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-message.running {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .status-message.completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-message.failed {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .errors-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fff5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .errors-list h4 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+
+        .errors-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .errors-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffcdd2;
+            color: #b71c1c;
+            font-size: 0.9rem;
+        }
+
+        .errors-list li:last-child {
+            border-bottom: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: #1565c0;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #1976d2;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📝 Google Form Auto-Submitter</h1>
+            <p class="subtitle">Automatically fill and submit Google Forms using data from Excel files</p>
+
+            <div class="info-box">
+                <h4>ℹ️ How it works</h4>
+                <p>
+                    1. Paste your Google Form URL below<br>
+                    2. Upload an Excel file with your data<br>
+                    3. Make sure Excel column names match form field labels<br>
+                    4. Click Submit and watch the magic happen!
+                </p>
+            </div>
+
+            <!-- Form Section -->
+            <form id="submitForm" class="form-section">
+                <div class="form-group">
+                    <label for="formUrl">Google Form URL *</label>
+                    <input type="url" id="formUrl" name="form_url" 
+                           placeholder="https://docs.google.com/forms/d/e/xxxxx/viewform" 
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Excel File (.xlsx or .xls) *</label>
+                    <div class="file-upload" id="dropZone">
+                        <div class="file-upload-icon">📁</div>
+                        <div class="file-upload-text">
+                            Drag & drop your Excel file here<br>
+                            <small>or click to browse</small>
+                        </div>
+                        <input type="file" id="excelFile" name="excel_file" 
+                               accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="file-name" id="fileName"></div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="headlessMode" name="headless">
+                        <label for="headlessMode">Run in headless mode (no browser window)</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    🚀 Start Submission
+                </button>
+            </form>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection">
+                <div class="status-message" id="statusMessage">
+                    <span class="loading-spinner"></span>
+                    <span id="statusText">Starting...</span>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-box total">
+                        <div class="stat-number" id="totalRows">0</div>
+                        <div class="stat-label">Total Rows</div>
+                    </div>
+                    <div class="stat-box success">
+                        <div class="stat-number" id="successCount">0</div>
+                        <div class="stat-label">Successful</div>
+                    </div>
+                    <div class="stat-box failed">
+                        <div class="stat-number" id="failCount">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                </div>
+
+                <div class="errors-list" id="errorsList" style="display: none;">
+                    <h4>⚠️ Errors</h4>
+                    <ul id="errorsUl"></ul>
+                </div>
+
+                <button class="btn btn-secondary" id="newSubmissionBtn" style="display: none;">
+                    ➕ New Submission
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('submitForm');
+        const progressSection = document.getElementById('progressSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('excelFile');
+        const fileName = document.getElementById('fileName');
+        
+        let currentJobId = null;
+        let pollInterval = null;
+
+        // File upload handling
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileName.textContent = '📄 ' + this.files[0].name;
+                fileName.classList.add('show');
+            }
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = '📄 ' + e.dataTransfer.files[0].name;
+                fileName.classList.add('show');
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formUrl = document.getElementById('formUrl').value;
+            const excelFile = document.getElementById('excelFile').files[0];
+            
+            if (!formUrl || !excelFile) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('form_url', formUrl);
+            formData.append('excel_file', excelFile);
+
+            // Show progress section
+            form.style.display = 'none';
+            progressSection.classList.add('show');
+            updateStatus('pending', 'Starting submission job...');
+
+            try {
+                // Submit the form
+                const response = await fetch('/submit-form', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentJobId = data.job_id;
+                    updateStatus('running', 'Job started. Processing...');
+                    startPolling();
+                } else {
+                    updateStatus('failed', 'Error: ' + (data.detail || 'Unknown error'));
+                    showNewSubmissionButton();
+                }
+            } catch (error) {
+                updateStatus('failed', 'Error: ' + error.message);
+                showNewSubmissionButton();
+            }
+        });
+
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/status/${currentJobId}`);
+                    const data = await response.json();
+
+                    updateProgress(data);
+
+                    if (data.status === 'completed' || data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showNewSubmissionButton();
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 1000);
+        }
+
+        function updateProgress(data) {
+            // Update status
+            updateStatus(data.status, data.message);
+
+            // Update stats
+            document.getElementById('totalRows').textContent = data.total_rows;
+            document.getElementById('successCount').textContent = data.success_count;
+            document.getElementById('failCount').textContent = data.fail_count;
+
+            // Update progress bar
+            const percentage = data.total_rows > 0 
+                ? Math.round((data.current_row / data.total_rows) * 100) 
+                : 0;
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+
+            // Show errors if any
+            if (data.errors && data.errors.length > 0) {
+                const errorsList = document.getElementById('errorsList');
+                const errorsUl = document.getElementById('errorsUl');
+                errorsUl.innerHTML = data.errors.map(err => `<li>${err}</li>`).join('');
+                errorsList.style.display = 'block';
+            }
+        }
+
+        function updateStatus(status, message) {
+            const statusMessage = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            
+            statusMessage.className = 'status-message ' + status;
+            
+            if (status === 'running' || status === 'pending') {
+                statusText.innerHTML = '<span class="loading-spinner"></span>' + message;
+            } else {
+                statusText.textContent = message;
+            }
+        }
+
+        function showNewSubmissionButton() {
+            document.getElementById('newSubmissionBtn').style.display = 'block';
+        }
+
+        // New submission button
+        document.getElementById('newSubmissionBtn').addEventListener('click', () => {
+            form.style.display = 'block';
+            progressSection.classList.remove('show');
+            form.reset();
+            fileName.classList.remove('show');
+            document.getElementById('newSubmissionBtn').style.display = 'none';
+            document.getElementById('errorsList').style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = '0%';
+        });
+    </script>
+</body>
+</html>

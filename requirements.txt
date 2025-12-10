@@ -1,0 +1,8 @@
+pandas
+selenium
+openpyxl
+webdriver-manager
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
